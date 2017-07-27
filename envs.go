@@ -11,6 +11,8 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
+var envsVal = flag.Bool("envs", false, "Display a list of accepted flags and environment variables")
+
 const (
 	maxRowLength int    = 30
 	envsFlag     string = "envs"
@@ -39,10 +41,11 @@ func GetAllFlags() error {
 	var tableBuff *bytes.Buffer
 	var table *tablewriter.Table
 
-	printHelp := flag.Lookup(envsFlag).Value.String() == "true"
-
 	// Assign table variables if table representation is required.
-	if printHelp {
+	if *envsVal {
+		// Stop the process after displaying the table.
+		defer os.Exit(0)
+
 		tableBuff = new(bytes.Buffer)
 		table = tablewriter.NewWriter(tableBuff)
 	}
@@ -65,7 +68,7 @@ func GetAllFlags() error {
 		}
 
 		// Append to data if table representation is required.
-		if printHelp {
+		if *envsVal {
 			data = append(data, []string{
 				currentFlag.Name,
 				envVar,
@@ -77,7 +80,7 @@ func GetAllFlags() error {
 	})
 
 	// Skip further execution if table representation is not required.
-	if !printHelp {
+	if !*envsVal {
 		return nil
 	}
 
