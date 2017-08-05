@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -16,6 +17,7 @@ var envsVal = flag.Bool("envs", false, "Display a list of accepted flags and env
 const (
 	maxRowLength int    = 30
 	envsFlag     string = "envs"
+	mdFile       string = "envs.md"
 )
 
 func wordWrap(str string) (newStr string) {
@@ -52,6 +54,8 @@ func GetAllFlags() error {
 
 	// Loop through the flags and fill up the table.
 	var data [][]string
+	mdData := "|Flag|Env. variable|Default value|Description|\n|:----|:----|:---|:---|\n"
+
 	flag.VisitAll(func(currentFlag *flag.Flag) {
 		// Skip reserved "envs" flag.
 		if currentFlag.Name == envsFlag {
@@ -69,6 +73,7 @@ func GetAllFlags() error {
 
 		// Append to data if table representation is required.
 		if *envsVal {
+			// Populate table data.
 			data = append(data, []string{
 				currentFlag.Name,
 				envVar,
@@ -76,12 +81,27 @@ func GetAllFlags() error {
 				wordWrap(currentFlag.Value.String()),
 				currentFlag.Usage,
 			})
+
+			// Populate MD data.
+			mdData += fmt.Sprintf(
+				"|%s|%s|%s|%s|\n",
+				currentFlag.Name,
+				envVar,
+				currentFlag.DefValue,
+				currentFlag.Usage,
+			)
 		}
 	})
 
 	// Skip further execution if table representation is not required.
 	if !*envsVal {
 		return nil
+	}
+
+	// Write MD data to file
+	writeMDErr := ioutil.WriteFile(mdFile, []byte(mdData), 0666)
+	if writeMDErr != nil {
+		return writeMDErr
 	}
 
 	// Check whether the default value column is empty.
