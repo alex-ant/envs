@@ -11,7 +11,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/LoudRun/envs"
+	"github.com/alex-ant/envs"
 )
 
 var (
